@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1f3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="業務通">
+<link rel="manifest" href="#" id="manifestLink">
+<title>業務通 — 業務拜訪系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b27;
+    --card:     #1e2535;
+    --accent:   #4f9cf9;
+    --accent2:  #7c3aed;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --gold:     #f59e0b;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --border:   rgba(255,255,255,0.08);
+    --radius:   16px;
+    --shadow:   0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: linear-gradient(135deg, #1a1f3a 0%, #0d1117 100%);
+    padding: 52px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .app-header h1 {
+    font-size: 22px; font-weight: 900; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .app-header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 88px; z-index: 99;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1; min-width: 72px; padding: 12px 8px;
+    text-align: center; font-size: 11px; font-weight: 500;
+    color: var(--muted); cursor: pointer; border: none;
+    background: none; transition: all 0.2s; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ── Pages ── */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 16px;
+    margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+
+  /* ── Stat Chips ── */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-chip {
+    background: linear-gradient(135deg, var(--surface), var(--card));
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 12px; text-align: center;
+  }
+  .stat-chip .num { font-size: 28px; font-weight: 900; font-family: 'Space Mono'; line-height: 1; }
+  .stat-chip .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat-chip.blue  .num { color: var(--accent); }
+  .stat-chip.green .num { color: var(--green); }
+  .stat-chip.gold  .num { color: var(--gold); }
+  .stat-chip.purple .num { color: #a78bfa; }
+
+  /* ── Buttons ── */
+  .btn {
+    width: 100%; padding: 16px; border: none; border-radius: var(--radius);
+    font-size: 15px; font-weight: 700; font-family: 'Noto Sans TC';
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #2563eb);
+    color: white; box-shadow: 0 4px 20px rgba(79,156,249,0.4);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    color: white; box-shadow: 0 4px 20px rgba(34,197,94,0.4);
+  }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+  /* ── Form ── */
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; font-weight: 600; letter-spacing: 0.5px; }
+  .form-input, .form-select {
+    width: 100%; padding: 12px 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 15px; font-family: 'Noto Sans TC';
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-select option { background: var(--surface); }
+
+  /* ── GPS Status ── */
+  .gps-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; background: var(--surface);
+    border-radius: 10px; border: 1px solid var(--border);
+    font-size: 13px; font-family: 'Space Mono';
+    margin-bottom: 12px;
+  }
+  .gps-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted); flex-shrink: 0;
+  }
+  .gps-dot.ok  { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  .gps-dot.err { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  /* ── Visit List ── */
+  .visit-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .visit-item:last-child { border-bottom: none; }
+  .visit-time {
+    font-family: 'Space Mono'; font-size: 11px;
+    color: var(--accent); min-width: 48px; text-align: center;
+    background: rgba(79,156,249,0.1); border-radius: 6px; padding: 3px 4px;
+  }
+  .visit-info .name { font-size: 14px; font-weight: 700; }
+  .visit-info .store { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sold-badge {
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    background: rgba(34,197,94,0.15); color: var(--green);
+    border: 1px solid rgba(34,197,94,0.3); border-radius: 6px;
+    padding: 2px 6px; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ── Ranking ── */
+  .rank-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-num {
+    font-family: 'Space Mono'; font-size: 16px; font-weight: 700;
+    min-width: 28px; text-align: center;
+  }
+  .rank-1 { color: #fbbf24; }
+  .rank-2 { color: #94a3b8; }
+  .rank-3 { color: #cd7c43; }
+  .rank-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .rank-stats { text-align: right; }
+  .rank-amount { font-family: 'Space Mono'; font-size: 14px; font-weight: 700; color: var(--gold); }
+  .rank-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 100px; padding: 12px 24px;
+    font-size: 14px; font-weight: 600; z-index: 999;
+    opacity: 0; transition: all 0.3s; white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error   { border-color: var(--red);   color: var(--red);   }
+
+  /* ── Loading ── */
+  .loading { text-align: center; padding: 30px; color: var(--muted); font-size: 13px; }
+  .spinner {
+    width: 24px; height: 24px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0; z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .nav-item {
+    flex: 1; text-align: center; cursor: pointer;
+    padding: 6px; color: var(--muted); font-size: 10px;
+    transition: color 0.2s; border: none; background: none;
+  }
+  .nav-item .nav-icon { font-size: 20px; display: block; }
+  .nav-item.active { color: var(--accent); }
+
+  /* ── Map Placeholder ── */
+  #mapContainer {
+    width: 100%; height: 320px; background: var(--surface);
+    border-radius: var(--radius); border: 1px solid var(--border);
+    overflow: hidden; position: relative;
+  }
+  #mapContainer iframe { width: 100%; height: 100%; border: none; }
+
+  /* ── Section Divider ── */
+  .section-header {
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin: 16px 0 8px; padding-left: 4px;
+  }
+
+  /* ── Profile ── */
+  .user-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 900; flex-shrink: 0;
+    color: white;
+  }
+
+  .checkin-big {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #2563eb);
+    border: none; cursor: pointer; margin: 0 auto;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; font-size: 36px;
+    box-shadow: 0 0 0 8px rgba(79,156,249,0.15), 0 0 0 16px rgba(79,156,249,0.05);
+    transition: all 0.2s;
+  }
+  .checkin-big:active { transform: scale(0.95); }
+  .checkin-big span { font-size: 13px; font-weight: 700; color: white; margin-top: 4px; font-family: 'Noto Sans TC'; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <h1>業 務 通</h1>
+  <div class="subtitle">SALES VISIT SYSTEM · <span id="headerDate">載入中...</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchPage('home')"><span class="tab-icon">🏠</span>首頁</button>
+  <button class="tab" onclick="switchPage('checkin')"><span class="tab-icon">📍</span>打卡</button>
+  <button class="tab" onclick="switchPage('sale')"><span class="tab-icon">💰</span>成交</button>
+  <button class="tab" onclick="switchPage('dashboard')"><span class="tab-icon">📊</span>儀表板</button>
+  <button class="tab" onclick="switchPage('map')"><span class="tab-icon">🗺️</span>地圖</button>
+</div>
+
+<div style="max-width:520px; margin:0 auto;">
+
+<!-- ══ PAGE: HOME ══ -->
+<div id="page-home" class="page active">
+  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+    <div class="user-avatar" id="userInitial">?</div>
+    <div>
+      <div style="font-size:18px; font-weight:900;" id="userNameDisplay">請先設定身份</div>
+      <div style="font-size:12px; color:var(--muted);" id="userRegionDisplay">—</div>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-chip blue">
+      <div class="num" id="myTodayVisit">-</div>
+      <div class="lbl">今日拜訪</div>
+    </div>
+    <div class="stat-chip green">
+      <div class="num" id="myTodaySale">-</div>
+      <div class="lbl">今日成交</div>
+    </div>
+    <div class="stat-chip gold">
+      <div class="num" id="myMonthVisit">-</div>
+      <div class="lbl">本月拜訪</div>
+    </div>
+    <div class="stat-chip purple">
+      <div class="num" id="myMonthSale">-</div>
+      <div class="lbl">本月成交</div>
+    </div>
+  </div>
+
+  <div class="section-header">最近拜訪記錄</div>
+  <div class="card">
+    <div id="homeRecentList"><div class="loading"><div class="spinner"></div>載入中...</div></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: CHECK-IN ══ -->
+<div id="page-checkin" class="page">
+  <div class="card">
+    <div class="card-title">📍 業務打卡</div>
+
+    <div class="form-group">
+      <label class="form-label">業務姓名</label>
+      <select class="form-select" id="salesSelect">
+        <option value="">請選擇業務...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">拜訪店家名稱</label>
+      <input class="form-input" type="text" id="storeName" placeholder="例：7-11 信義門市">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">店家地址（選填）</label>
+      <input class="form-input" type="text" id="storeAddress" placeholder="自動帶入 GPS，可手動補充">
+    </div>
+
+    <div class="gps-status" id="gpsStatus">
+      <div class="gps-dot" id="gpsDot"></div>
+      <span id="gpsText">等待取得 GPS...</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">備註</label>
+      <input class="form-input" type="text" id="checkInNote" placeholder="拜訪目的、備忘...">
+    </div>
+
+    <div style="text-align:center; margin: 24px 0;">
+      <button class="checkin-big" id="checkInBtn" onclick="doCheckIn()">
+        📍<span>立即打卡</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">今日打卡記錄</div>
+    <div id="todayCheckinList"><div class="loading" style="padding:16px 0;">—</div></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: SALE ══ -->
+<div id="page-sale" class="page">
+  <div class="card">
+    <div class="card-title">💰 登記成交</div>
+
+    <div class="form-group">
+      <label class="form-label">業務姓名</label>
+      <select class="form-select" id="saleSalesSelect">
+        <option value="">請選擇業務...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">關聯拜訪記錄（選填）</label>
+      <select class="form-select" id="saleVisitSelect">
+        <option value="">不關聯 / 直接記錄</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">店家名稱</label>
+      <input class="form-input" type="text" id="saleStoreName" placeholder="成交店家">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">成交金額（元）</label>
+      <input class="form-input" type="number" id="saleAmount" placeholder="0" inputmode="numeric">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">產品 / 服務</label>
+      <input class="form-input" type="text" id="saleProduct" placeholder="成交項目描述">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">備註</label>
+      <input class="form-input" type="text" id="saleNote" placeholder="補充說明...">
+    </div>
+
+    <button class="btn btn-success" onclick="doRecordSale()" style="margin-top:8px;">
+      ✅ 登記成交
+    </button>
+  </div>
+</div>
+
+<!-- ══ PAGE: DASHBOARD ══ -->
+<div id="page-dashboard" class="page">
+  <div class="section-header">今日總覽</div>
+  <div class="stat-grid">
+    <div class="stat-chip blue"><div class="num" id="dbTodayVisit">-</div><div class="lbl">今日拜訪</div></div>
+    <div class="stat-chip green"><div class="num" id="dbTodaySale">-</div><div class="lbl">今日成交</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-size:12px; color:var(--muted);">今日成交金額</div>
+      <div style="font-size:22px; font-weight:900; color:var(--gold); font-family:'Space Mono';" id="dbTodayAmount">$-</div>
+    </div>
+  </div>
+
+  <div class="section-header">本月業績排名 🏆</div>
+  <div class="card">
+    <div id="rankingList"><div class="loading"><div class="spinner"></div>載入排名中...</div></div>
+  </div>
+
+  <div class="section-header">即時拜訪動態</div>
+  <div class="card">
+    <div id="dbRecentList"><div class="loading"><div class="spinner"></div>載入中...</div></div>
+  </div>
+
+  <button class="btn btn-outline" style="margin-top:4px;" onclick="loadDashboard()">🔄 重新整理</button>
+</div>
+
+<!-- ══ PAGE: MAP ══ -->
+<div id="page-map" class="page">
+  <div class="card">
+    <div class="card-title">🗺️ 今日拜訪地圖</div>
+    <div id="mapContainer">
+      <div class="loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+        <div class="spinner"></div>載入地圖...
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">拜訪點位清單</div>
+    <div id="mapVisitList"><div class="loading" style="padding:16px 0;">—</div></div>
+  </div>
+</div>
+
+</div><!-- /max-width -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// 設定區 — 請替換為你的 Apps Script 部署網址
+// ══════════════════════════════════════════════
+const API_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL';
+
+// ══════════════════════════════════════════════
+// 狀態
+// ══════════════════════════════════════════════
+let currentGPS  = null;
+let salesmenList = [];
+let currentUser  = JSON.parse(localStorage.getItem('currentUser') || 'null');
+let todayVisits  = [];
+
+// ══════════════════════════════════════════════
+// 初始化
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  updateHeaderDate();
+  setInterval(updateHeaderDate, 1000);
+  startGPS();
+  await loadSalesmen();
+  updateHomeProfile();
+  loadDashboard();
+  loadTodayVisits();
+});
+
+function updateHeaderDate() {
+  const now = new Date();
+  const opts = { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false };
+  document.getElementById('headerDate').textContent =
+    now.toLocaleString('zh-TW', opts).replace(/\//g, '-');
+}
+
+// ══════════════════════════════════════════════
+// Tab & Page 切換
+// ══════════════════════════════════════════════
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'map') loadMap();
+  if (name === 'sale') loadSaleVisits();
+}
+
+// ══════════════════════════════════════════════
+// GPS
+// ══════════════════════════════════════════════
+function startGPS() {
+  if (!navigator.geolocation) {
+    setGPSStatus('error', '此裝置不支援 GPS');
+    return;
+  }
+  setGPSStatus('wait', '定位中...');
+
+  navigator.geolocation.watchPosition(
+    pos => {
+      currentGPS = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6), acc: pos.coords.accuracy.toFixed(0) };
+      setGPSStatus('ok', `${currentGPS.lat}, ${currentGPS.lng}  (精度 ${currentGPS.acc}m)`);
+    },
+    err => {
+      setGPSStatus('error', 'GPS 取得失敗：' + err.message);
+    },
+    { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
+  );
+}
+
+function setGPSStatus(state, msg) {
+  const dot  = document.getElementById('gpsDot');
+  const text = document.getElementById('gpsText');
+  dot.className  = 'gps-dot' + (state === 'ok' ? ' ok' : state === 'error' ? ' err' : '');
+  text.textContent = msg;
+}
+
+// ══════════════════════════════════════════════
+// 載入業務清單
+// ══════════════════════════════════════════════
+async function loadSalesmen() {
+  try {
+    const res  = await fetch(`${API_URL}?action=getSalesmen`);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+    salesmenList = data.data;
+    populateSalesSelects();
+  } catch(e) { console.error(e); }
+}
+
+function populateSalesSelects() {
+  ['salesSelect', 'saleSalesSelect'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">請選擇業務...</option>';
+    salesmenList.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.name}（${s.region || '—'}）`;
+      sel.appendChild(opt);
+    });
+  });
+  // 自動選取上次使用者
+  if (currentUser) {
+    document.getElementById('salesSelect').value = currentUser.id;
+    document.getElementById('saleSalesSelect').value = currentUser.id;
+  }
+
+  // 記住選擇
+  document.getElementById('salesSelect').addEventListener('change', e => {
+    const s = salesmenList.find(x => x.id === e.target.value);
+    if (s) { currentUser = s; localStorage.setItem('currentUser', JSON.stringify(s)); updateHomeProfile(); }
+  });
+}
+
+function updateHomeProfile() {
+  if (!currentUser) return;
+  document.getElementById('userInitial').textContent = currentUser.name?.[0] || '?';
+  document.getElementById('userNameDisplay').textContent = currentUser.name || '—';
+  document.getElementById('userRegionDisplay').textContent = `區域：${currentUser.region || '—'}`;
+}
+
+// ══════════════════════════════════════════════
+// 打卡
+// ══════════════════════════════════════════════
+async function doCheckIn() {
+  const salesSel = document.getElementById('salesSelect');
+  const salesId  = salesSel.value;
+  const salesName = salesSel.options[salesSel.selectedIndex]?.text || '';
+  const storeName = document.getElementById('storeName').value.trim();
+
+  if (!salesId)   { showToast('請選擇業務', 'error'); return; }
+  if (!storeName) { showToast('請輸入店家名稱', 'error'); return; }
+  if (!currentGPS){ showToast('GPS 尚未就緒，請稍候', 'error'); return; }
+
+  const btn = document.getElementById('checkInBtn');
+  btn.disabled = true;
+
+  try {
+    const body = {
+      action:       'checkIn',
+      salesId,
+      salesName:    salesName.split('（')[0],
+      storeName,
+      storeAddress: document.getElementById('storeAddress').value.trim(),
+      lat:          currentGPS.lat,
+      lng:          currentGPS.lng,
+      note:         document.getElementById('checkInNote').value.trim(),
+    };
+
+    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      showToast(`✅ 打卡成功！${body.storeName}`, 'success');
+      document.getElementById('storeName').value = '';
+      document.getElementById('storeAddress').value = '';
+      document.getElementById('checkInNote').value = '';
+      loadTodayVisits();
+      updateHomeStats();
+    } else {
+      showToast('打卡失敗：' + data.message, 'error');
+    }
+  } catch(e) {
+    showToast('網路錯誤：' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════
+// 登記成交
+// ══════════════════════════════════════════════
+async function doRecordSale() {
+  const salesSel  = document.getElementById('saleSalesSelect');
+  const salesId   = salesSel.value;
+  const salesName = salesSel.options[salesSel.selectedIndex]?.text.split('（')[0] || '';
+  const storeName = document.getElementById('saleStoreName').value.trim();
+  const amount    = parseFloat(document.getElementById('saleAmount').value) || 0;
+
+  if (!salesId)   { showToast('請選擇業務', 'error'); return; }
+  if (!storeName) { showToast('請輸入店家名稱', 'error'); return; }
+  if (amount <= 0){ showToast('請輸入成交金額', 'error'); return; }
+
+  try {
+    const visitSel = document.getElementById('saleVisitSelect');
+    const body = {
+      action:    'recordSale',
+      salesId,   salesName,
+      storeName,
+      amount,
+      visitId:   visitSel.value || '',
+      product:   document.getElementById('saleProduct').value.trim(),
+      note:      document.getElementById('saleNote').value.trim(),
+    };
+
+    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      showToast(`💰 成交 $${amount.toLocaleString()} 登記成功！`, 'success');
+      ['saleStoreName','saleAmount','saleProduct','saleNote'].forEach(id => document.getElementById(id).value = '');
+    } else {
+      showToast('登記失敗：' + data.message, 'error');
+    }
+  } catch(e) {
+    showToast('網路錯誤：' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+// 載入儀表板
+// ══════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const res  = await fetch(`${API_URL}?action=getDashboard`);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+
+    document.getElementById('dbTodayVisit').textContent = data.todayVisits;
+    document.getElementById('dbTodaySale').textContent  = data.todaySales;
+    document.getElementById('dbTodayAmount').textContent = '$' + (data.todayAmount||0).toLocaleString();
+
+    // Ranking
+    const rl = document.getElementById('rankingList');
+    if (!data.ranking?.length) { rl.innerHTML = '<div class="loading" style="padding:16px 0;">暫無資料</div>'; }
+    else {
+      rl.innerHTML = data.ranking.map((r,i) => `
+        <div class="rank-item">
+          <div class="rank-num rank-${i+1}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+          <div class="rank-name">${r.salesName}</div>
+          <div class="rank-stats">
+            <div class="rank-amount">$${(r.amount||0).toLocaleString()}</div>
+            <div class="rank-detail">拜訪 ${r.visits} · 成交 ${r.sales}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Recent
+    const drl = document.getElementById('dbRecentList');
+    if (!data.recentVisits?.length) { drl.innerHTML = '<div class="loading" style="padding:16px 0;">今日暫無記錄</div>'; }
+    else { drl.innerHTML = renderVisitItems(data.recentVisits); }
+
+    // Home stats from ranking
+    if (currentUser) {
+      const me = data.ranking.find(r => r.salesId === currentUser.id);
+      document.getElementById('myMonthVisit').textContent = me?.visits || 0;
+      document.getElementById('myMonthSale').textContent  = me?.sales  || 0;
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ══════════════════════════════════════════════
+// 今日打卡清單
+// ══════════════════════════════════════════════
+async function loadTodayVisits() {
+  const today = new Date().toLocaleDateString('sv-SE');
+  try {
+    const res  = await fetch(`${API_URL}?action=getVisits&date=${today}&limit=50`);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+    todayVisits = data.data;
+
+    // 更新打卡頁
+    const el = document.getElementById('todayCheckinList');
+    if (!data.data.length) { el.innerHTML = '<div class="loading" style="padding:16px 0;">今日尚無打卡</div>'; }
+    else { el.innerHTML = renderVisitItems(data.data); }
+
+    // Home: my today counts
+    if (currentUser) {
+      const mine = data.data.filter(v => v.salesId === currentUser.id);
+      document.getElementById('myTodayVisit').textContent = mine.length;
+      document.getElementById('myTodaySale').textContent  = mine.filter(v => v.sold === '✓').length;
+    }
+
+    // Home recent list
+    document.getElementById('homeRecentList').innerHTML = renderVisitItems(data.data.slice(0,8));
+
+  } catch(e) { console.error(e); }
+}
+
+function updateHomeStats() { loadTodayVisits(); }
+
+function renderVisitItems(visits) {
+  if (!visits?.length) return '<div class="loading" style="padding:16px 0;">—</div>';
+  return visits.map(v => `
+    <div class="visit-item">
+      <div class="visit-time">${(v.time||'').slice(0,5)}</div>
+      <div class="visit-info">
+        <div class="name">${v.salesName||''}</div>
+        <div class="store">${v.storeName||''}</div>
+      </div>
+      ${v.sold === '✓' ? '<div class="sold-badge">成交</div>' : ''}
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// 成交頁：載入今日拜訪供關聯
+// ══════════════════════════════════════════════
+function loadSaleVisits() {
+  const sel = document.getElementById('saleVisitSelect');
+  sel.innerHTML = '<option value="">不關聯 / 直接記錄</option>';
+  todayVisits.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.visitId;
+    opt.textContent = `${v.time?.slice(0,5)} ${v.salesName} @ ${v.storeName}`;
+    sel.appendChild(opt);
+  });
+}
+
+// ══════════════════════════════════════════════
+// 地圖
+// ══════════════════════════════════════════════
+async function loadMap() {
+  const today = new Date().toLocaleDateString('sv-SE');
+  try {
+    const res  = await fetch(`${API_URL}?action=getVisits&date=${today}&limit=100`);
+    const data = await res.json();
+    if (data.status !== 'ok') return;
+
+    const points = data.data.filter(v => v.lat && v.lng);
+    const mapContainer = document.getElementById('mapContainer');
+
+    if (!points.length) {
+      mapContainer.innerHTML = '<div class="loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">今日無拜訪點位</div>';
+      return;
+    }
+
+    // 使用 Google Maps Embed（中心點取第一筆）
+    const center = points[0];
+    const markers = points.map(p => `markers=color:red%7C${p.lat},${p.lng}`).join('&');
+    mapContainer.innerHTML = `
+      <iframe
+        src="https://maps.google.com/maps?q=${center.lat},${center.lng}&z=12&output=embed&hl=zh-TW"
+        allowfullscreen loading="lazy">
+      </iframe>`;
+
+    // 清單
+    const ml = document.getElementById('mapVisitList');
+    ml.innerHTML = points.map(v => `
+      <div class="visit-item">
+        <div class="visit-time">${(v.time||'').slice(0,5)}</div>
+        <div class="visit-info">
+          <div class="name">${v.salesName} · ${v.storeName}</div>
+          <div class="store" style="font-family:'Space Mono'; font-size:10px;">${v.lat}, ${v.lng}</div>
+        </div>
+      </div>`).join('');
+
+  } catch(e) { console.error(e); }
+}
+
+// ══════════════════════════════════════════════
+// Toast
+// ══════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════
+// PWA Manifest (inline)
+// ══════════════════════════════════════════════
+const manifest = {
+  name: '業務通 - 業務拜訪系統',
+  short_name: '業務通',
+  start_url: './',
+  display: 'standalone',
+  theme_color: '#1a1f3a',
+  background_color: '#0d1117',
+  icons: [{ src: 'https://via.placeholder.com/192x192/4f9cf9/ffffff?text=%E6%A5%AD', sizes: '192x192', type: 'image/png' }]
+};
+const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+</script>
+</body>
+</html>
